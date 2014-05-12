@@ -14,7 +14,10 @@ def get_frame(databits, cc_len):
     Add header and also apply Hamming code of n=3
     Return the resulted frame (channel-coded header and databits)
     '''
-    
+    print "get_frame"
+    print "cc_len" , cc_len
+    get_header(databits, 2)
+
     return frame
     
 def get_header(payload, index):
@@ -23,6 +26,11 @@ def get_header(payload, index):
     Do not confuse this with header from source module.
     Communication system use layers and attach nested headers from each layers 
     '''
+
+    num_bits = len(payload)
+    print "num_bits", num_bits
+    print "index", index
+
 
     return header
     
