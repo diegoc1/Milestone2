@@ -111,9 +111,12 @@ def parity_lookup(index):
         G_r = numpy.reshape(G, (k, n))
         A = G_r[:, 0:(n-k)]
 
-    A_t = numpy.transpose(A)
-    H = numpy.concatenate(A_t, numpy.identity(n))
+    I = numpy.identity((n-k)).astype(numpy.uint8)
+    H_t = numpy.concatenate((A, I))
+    H = numpy.transpose(H_t)
+    
     print H
+
     return n, k, H
 
 
