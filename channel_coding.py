@@ -22,8 +22,8 @@ def get_frame(databits, cc_len):
     print "G", G
 
     '''
+    header = get_header(databits, index)
     payload = encode(databits)
-    header = get_header(payload, index)
     frame = encode(header) + payload
     '''
     return frame
@@ -66,12 +66,12 @@ def encode(databits, cc_len):
 
     bits_to_encode = databits
     while len(bits_to_encode) < k:
-        bits_to_encode = numpy.append(bits_to_encode, 0)
+        bits_to_encode = np.append(bits_to_encode, 0)
 
 
-    bits = (numpy.matrix(bits_to_encode))
+    bits = (np.matrix(bits_to_encode))
 
-    G_r = numpy.matrix(numpy.reshape(G, (k, n)))
+    G_r = np.matrix(np.reshape(G, (k, n)))
 
     coded_bits = bits * G_r
     
@@ -105,10 +105,10 @@ def get_databits(recd_bits):
     num_bits_to_decode = getIntFromBinaryArr(num_bits_to_decode_array)
     index_for_payload = getIntFromBinaryArr(index_for_payload_array)
 
-    '''
-    databits = decode(recd_bits[32:], index_for_payload)
-    ///Still need to figure out how to use num_bits_to_decode
-    '''
+
+    payload = recd_bits[32:]
+    databits = decode(payload, index_for_payload)
+
 
 
 
@@ -120,8 +120,15 @@ def decode(coded_bits, index):
     Decode <coded_bits> with Hamming code which corresponds to <index>
     Return decoded bits
     '''
-
-
+    n, k, H = hamming_db.parity_lookup(index)
+    ind = 0
+    decoded_bits = np.array()
+    while(ind < len(coded_bits)):
+        bits_to_decode = coded_bits[ind: ind + n]
+        bits = (np.matrix(bits_to_decode))
+        data_bits = np.multiply(bits, H)
+        decoded_bits += data_bits
+        ind = ind + n
 
     return decoded_bits
 
