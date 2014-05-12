@@ -33,15 +33,18 @@ def encode(databits, cc_len):
     Return the index of our used code and the channel-coded databits
     '''
 
-    n, k, index, G = gen_lookup(cc_len)
+    n, k, index, G = hamming_db.gen_lookup(cc_len)
 
     bits_to_encode = databits
-    while len(bits_to_encode) < cc_len:
-        bits_to_encode.add(0)
+    while len(bits_to_encode) < k:
+        bits_to_encode = numpy.append(bits_to_encode, 0)
 
-    print bits_to_encode
 
-    coded_bits = G * databits;
+    bits = (numpy.matrix(bits_to_encode))
+
+    G_r = numpy.matrix(numpy.reshape(G, (k, n)))
+
+    coded_bits = bits * G_r
     
     return index, coded_bits
 
@@ -63,3 +66,5 @@ def decode(coded_bits, index):
     '''
 
     return decoded_bits
+
+print encode([0, 1], 7)
