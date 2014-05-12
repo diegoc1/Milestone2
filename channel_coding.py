@@ -63,19 +63,26 @@ def encode(databits, cc_len):
     '''
 
     n, k, index, G = hamming_db.gen_lookup(cc_len)
+    G_r = np.matrix(np.reshape(G, (k, n)))
 
-    bits_to_encode = databits
-    while len(bits_to_encode) < k:
-        bits_to_encode = numpy.append(bits_to_encode, 0)
+    encoded_bits = np.array([]).astype(np.uint8)
+    c = 0
+    while c <= len(databits) - k:
+        bits_to_encode = np.matrix(databits[c:c+k])
+        codeword = bits_to_encode * G_r
+        codeword = codeword % 2
+        encoded_bits = np.append(encoded_bits, codeword)
+        c += k
 
-
-    bits = (numpy.matrix(bits_to_encode))
-
-    G_r = numpy.matrix(numpy.reshape(G, (k, n)))
-
-    coded_bits = bits * G_r
-    
-    return index, coded_bits
+    if c != len(databits):
+        bits_to_encode = databits[c:]
+        while len(bits_to_encode) < k:
+            bits_to_encode = np.append(bits_to_encode, 0)
+        bits_to_encode = np.matrix(bits_to_encode)
+        codeword = bits_to_encode * G_r
+        codeword = codeword % 2
+        encoded_bits = np.append(encoded_bits, codeword)
+    return index, encoded_bits
 
 ''' Receiver side ---------------------------------------------------
 '''    
@@ -122,7 +129,6 @@ def decode(coded_bits, index):
     '''
 
 
-
     return decoded_bits
 
-print encode([0, 1], 7)
+print encode([0, 1, 1, 0, 1], 7)
