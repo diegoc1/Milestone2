@@ -59,6 +59,22 @@ def gen_lookup(cc_len):
     (4) generater matrix
     for Hamming code with n = cc_len
     '''
+    n = cc_len
+    index = 0
+    if n == 1:
+        index = 0
+        k = 1
+    elif n == 7:
+        index = 1
+        k = 4
+    elif n  == 15:
+        index = 2
+        k = 11
+    else:
+        index = 3
+        k = 26
+
+    G = generating_matrices[index]
 
     return n, k, index, G
 
@@ -74,8 +90,32 @@ def parity_lookup(index):
     is, because containing index is efficient than containing n in the header.
     The decoder reads the header to pick the right parity check matrix.
     ''' 
+    if index == 0:
+        n = 1
+        k = 1
+    elif index == 1:
+        n = 7
+        k = 4
+    elif index  == 2:
+        n = 15
+        k = 11
+    else:
+        n = 31
+        k = 26
 
+    G = generating_matrices[index]
+
+    if index == 0:
+        A = []
+    else:
+        G_r = numpy.reshape(G, (k, n))
+        A = G_r[:, 0:(n-k)]
+
+    A_t = numpy.transpose(A)
+    H = numpy.concatenate(A_t, numpy.identity(n))
+    print H
     return n, k, H
 
 
+parity_lookup(1)
 
