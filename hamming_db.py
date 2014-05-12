@@ -119,6 +119,3 @@ def parity_lookup(index):
 
     return n, k, H
 
-
-parity_lookup(1)
-

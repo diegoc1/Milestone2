@@ -32,6 +32,16 @@ def encode(databits, cc_len):
     Pad zeros to the databits if needed.
     Return the index of our used code and the channel-coded databits
     '''
+
+    n, k, index, G = gen_lookup(cc_len)
+
+    bits_to_encode = databits
+    while len(bits_to_encode) < cc_len:
+        bits_to_encode.add(0)
+
+    print bits_to_encode
+
+    coded_bits = G * databits;
     
     return index, coded_bits
 
