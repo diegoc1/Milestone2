@@ -61,7 +61,7 @@ def gen_lookup(cc_len):
     '''
     n = cc_len
     index = 0
-    if n == 1:
+    if n == 3:
         index = 0
         k = 1
     elif n == 7:
@@ -91,7 +91,7 @@ def parity_lookup(index):
     The decoder reads the header to pick the right parity check matrix.
     ''' 
     if index == 0:
-        n = 1
+        n = 3
         k = 1
     elif index == 1:
         n = 7
@@ -105,17 +105,19 @@ def parity_lookup(index):
 
     G = generating_matrices[index]
 
-    if index == 0:
-        A = []
-    else:
-        G_r = numpy.reshape(G, (k, n))
-        A = G_r[:, 0:(n-k)]
+    G_r = numpy.reshape(G, (k, n))
+    A = G_r[:, 0:(n-k)]
+    # if index == 0:
+    #     A = []
+    # else:
+        
+
+
 
     I = numpy.identity((n-k)).astype(numpy.uint8)
     H_t = numpy.concatenate((A, I))
     H = numpy.transpose(H_t)
     
-    print H
 
     return n, k, H
 

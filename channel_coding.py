@@ -3,7 +3,9 @@ Channel coding module for transmitter and receiver
 '''
 
 import numpy as np
+import collections
 
+from random import randrange
 import hamming_db   # Matrices for Hamming codes
 
 ''' Transmitter side ---------------------------------------------------
@@ -16,16 +18,15 @@ def get_frame(databits, cc_len):
     '''
 
     n, k, index, G = hamming_db.gen_lookup(cc_len)
-    print "n", n
-    print "k", k
-    print "index", index
-    print "G", G
 
-    '''
+
+    
     header = get_header(databits, index)
-    payload = encode(databits)
-    frame = encode(header) + payload
-    '''
+
+    i, payload = encode(databits, cc_len)
+    i, encoded_header = encode(header, 3)
+    frame = np.append(encoded_header ,payload)
+    
     return frame
     
 
@@ -50,6 +51,7 @@ def get_header(payload, index):
     num_bits_bit_array = int_to_16_bit_array(num_bits)
 
     index_bit_array = int_to_16_bit_array(index)
+
     header = num_bits_bit_array + index_bit_array
 
 
@@ -62,20 +64,29 @@ def encode(databits, cc_len):
     Return the index of our used code and the channel-coded databits
     '''
 
+
     n, k, index, G = hamming_db.gen_lookup(cc_len)
-
-    bits_to_encode = databits
-    while len(bits_to_encode) < k:
-        bits_to_encode = np.append(bits_to_encode, 0)
-
-
-    bits = (np.matrix(bits_to_encode))
 
     G_r = np.matrix(np.reshape(G, (k, n)))
 
-    coded_bits = bits * G_r
-    
-    return index, coded_bits
+    encoded_bits = np.array([]).astype(np.uint8)
+    c = 0
+    while c <= len(databits) - k:
+        bits_to_encode = np.matrix(databits[c:c+k])
+        codeword = bits_to_encode * G_r
+        codeword = codeword % 2
+        encoded_bits = np.append(encoded_bits, codeword)
+        c += k
+
+    if c != len(databits):
+        bits_to_encode = databits[c:]
+        while len(bits_to_encode) < k:
+            bits_to_encode = np.append(bits_to_encode, 0)
+        bits_to_encode = np.matrix(bits_to_encode)
+        codeword = bits_to_encode * G_r
+        codeword = codeword % 2
+        encoded_bits = np.append(encoded_bits, codeword)
+    return index, encoded_bits
 
 ''' Receiver side ---------------------------------------------------
 '''    
@@ -95,25 +106,53 @@ def get_databits(recd_bits):
     '''
 
     n, k, index, G = hamming_db.gen_lookup(3)
+   # import pdb; pdb.set_trace()
 
-    header = recd_bits[0:32]
+   #Multiply by 3 becasue of encoding
+    header = recd_bits[0:32*3]
+
     header = decode(header, index)
 
     num_bits_to_decode_array = header[0:16]
     index_for_payload_array = header[16:32]
 
+
+
     num_bits_to_decode = getIntFromBinaryArr(num_bits_to_decode_array)
     index_for_payload = getIntFromBinaryArr(index_for_payload_array)
 
+    print "num_bits_to_decode", num_bits_to_decode
 
-    payload = recd_bits[32:]
+    payload = recd_bits[32*3:]
     databits = decode(payload, index_for_payload)
 
+    return databits[:num_bits_to_decode]
 
 
+def getErrorIndex(output, H, n, k):
+    output = np.transpose(output)
+    output = output.tolist()
+    output = output[0]
 
+    for i in range(n):
+        col = H[:, i]
+        col = col.tolist()
+        if listsEqual(col, output):
+            return i
+    return -1
 
-    return databits
+def listsEqual(a, b, show = False):
+    if len(a) != len(b):
+        if show:
+            "DIFF LENGTHS"
+        return False
+
+    for i in range(len(a)):
+        if a[i] != b[i]:
+            if show:
+                print "error at ", i
+            return False
+    return True
 
 def decode(coded_bits, index):
     '''
@@ -121,15 +160,65 @@ def decode(coded_bits, index):
     Return decoded bits
     '''
     n, k, H = hamming_db.parity_lookup(index)
+
     ind = 0
-    decoded_bits = np.array()
+    decoded_bits = np.array([]).astype(np.uint8)
     while(ind < len(coded_bits)):
         bits_to_decode = coded_bits[ind: ind + n]
         bits = (np.matrix(bits_to_decode))
-        data_bits = np.multiply(bits, H)
-        decoded_bits += data_bits
+        data_bits = (H * np.transpose(bits)) % 2
+        error_ind = getErrorIndex(data_bits, H, n, k)
+        if (error_ind != -1):
+            print "correcting error at ", ind + error_ind + 96
+            print "changing ", bits_to_decode[n-k:]
+            bits_to_decode[error_ind] = (bits_to_decode[error_ind] + 1) % 2
+            print "it is now ", bits_to_decode[n-k:]
+            print
+        decoded_bits = np.append(decoded_bits, bits_to_decode[n-k:])
         ind = ind + n
-
     return decoded_bits
 
-print encode([0, 1], 7)
+
+
+# f = get_frame([0, 1, 1, 0, 1, 1 , 1, 0, 1, 1, 0], 7)
+
+for x in range(200):
+    length = randrange(10000)
+
+    l = [0] * length
+
+    for i in range(length):
+        c = randrange(2)
+        if c == 1:
+            l[i] = 1
+
+    print "size of array", length
+
+
+    f = get_frame(l, 15)
+
+    s = f.shape[0]
+    ind = randrange(s)
+
+
+    f[ind] = ( f[ind] + 1 ) % 2
+
+
+    k = get_databits(f)
+    print "original: ", l
+    print " new: ", k
+    print "ind is ", ind
+    print "length is ", len(k)
+
+    if listsEqual(l, k, True):
+        print "LISTS EQUAL"
+    else:
+        exit()
+
+# exit()
+# i, a = encode([0, 1, 1, 0, 1, 1 ,1,1], 7)
+# print "encoded", a
+# print "Asdf"
+
+
+# print decode(a, i)
