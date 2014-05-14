@@ -161,6 +161,8 @@ if __name__ == '__main__':
     if len(sink_bits) > 0:
         hd, err = common_srcsink.hamming(sink_bits, src_bits)
         print 'Hamming distance for payload at frequency', fc,'Hz:', hd, 'BER:', err
+        with open("temp.txt", "a") as myfile:
+            myfile.write("" + str(opt.cc_len) + " " + str(opt.noise) + " " + str(err) + " \n")
     else:
         print 'Could not recover transmission.'
 
