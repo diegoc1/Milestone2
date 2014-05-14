@@ -121,7 +121,6 @@ def get_databits(recd_bits):
     num_bits_to_decode = getIntFromBinaryArr(num_bits_to_decode_array)
     index_for_payload = getIntFromBinaryArr(index_for_payload_array)
 
-    print "num_bits_to_decode", num_bits_to_decode
 
     payload = recd_bits[32*3:]
     databits = decode(payload, index_for_payload)
@@ -169,11 +168,7 @@ def decode(coded_bits, index):
         data_bits = (H * np.transpose(bits)) % 2
         error_ind = getErrorIndex(data_bits, H, n, k)
         if (error_ind != -1):
-            print "correcting error at ", ind + error_ind + 96
-            print "changing ", bits_to_decode[n-k:]
             bits_to_decode[error_ind] = (bits_to_decode[error_ind] + 1) % 2
-            print "it is now ", bits_to_decode[n-k:]
-            print
         decoded_bits = np.append(decoded_bits, bits_to_decode[n-k:])
         ind = ind + n
     return decoded_bits
@@ -182,38 +177,38 @@ def decode(coded_bits, index):
 
 # f = get_frame([0, 1, 1, 0, 1, 1 , 1, 0, 1, 1, 0], 7)
 
-for x in range(200):
-    length = randrange(10000)
+# for x in range(200):
+#     length = randrange(10000)
 
-    l = [0] * length
+#     l = [0] * length
 
-    for i in range(length):
-        c = randrange(2)
-        if c == 1:
-            l[i] = 1
+#     for i in range(length):
+#         c = randrange(2)
+#         if c == 1:
+#             l[i] = 1
 
-    print "size of array", length
-
-
-    f = get_frame(l, 15)
-
-    s = f.shape[0]
-    ind = randrange(s)
+#     print "size of array", length
 
 
-    f[ind] = ( f[ind] + 1 ) % 2
+#     f = get_frame(l, 15)
+
+#     s = f.shape[0]
+#     ind = randrange(s)
 
 
-    k = get_databits(f)
-    print "original: ", l
-    print " new: ", k
-    print "ind is ", ind
-    print "length is ", len(k)
+#     f[ind] = ( f[ind] + 1 ) % 2
 
-    if listsEqual(l, k, True):
-        print "LISTS EQUAL"
-    else:
-        exit()
+
+#     k = get_databits(f)
+#     print "original: ", l
+#     print " new: ", k
+#     print "ind is ", ind
+#     print "length is ", len(k)
+
+#     if listsEqual(l, k, True):
+#         print "LISTS EQUAL"
+#     else:
+#         exit()
 
 # exit()
 # i, a = encode([0, 1, 1, 0, 1, 1 ,1,1], 7)
