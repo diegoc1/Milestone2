@@ -1,6 +1,6 @@
 import os
 
-for i in range(0, 4):
+for i in range(0, 2):
 	n = 3
 	if i == 1:
 		n = 7
@@ -9,7 +9,7 @@ for i in range(0, 4):
 	elif i == 3:
 		n = 31
 
-	for j in range(0, 5):
+	for x in range(0, 5):
 
 		#3,7,15,31
 		for j in range(0, 10):
